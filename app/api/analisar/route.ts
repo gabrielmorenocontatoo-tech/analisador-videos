@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
-const GEMINI_MODEL = "gemini-2.0-flash";
+const GEMINI_MODEL = "gemini-2.5-flash-preview-04-17";
 
 function tipoUrl(url: string): "youtube" | "instagram" | "tiktok" | "desconhecido" {
   if (/youtube\.com|youtu\.be/.test(url)) return "youtube";
@@ -13,7 +13,7 @@ function tipoUrl(url: string): "youtube" | "instagram" | "tiktok" | "desconhecid
 async function analisarYouTube(url: string): Promise<Record<string, string>> {
   const prompt = buildPrompt(url, "");
   const payload = {
-    contents: [{ parts: [{ text: prompt + "\n\nURL do vídeo YouTube para analisar: " + url }] }],
+    contents: [{ parts: [{ text: prompt }] }],
     generationConfig: { temperature: 0.2, maxOutputTokens: 1500 },
   };
   const res = await fetch(
