@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
-const GEMINI_MODEL = "gemini-2.5-flash-preview-04-17";
+const GEMINI_MODEL = "gemini-2.5-flash";
 
 function tipoUrl(url: string): "youtube" | "instagram" | "tiktok" | "desconhecido" {
   if (/youtube\.com|youtu\.be/.test(url)) return "youtube";
@@ -20,7 +20,7 @@ async function analisarYouTube(url: string): Promise<Record<string, string>> {
     `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
     { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }
   );
-  if (!res.ok) { const err = await res.text(); throw new Error(`Erro Gemini: ${res.status} — ${err.slice(0, 300)}`); }
+  if (!res.ok) { const err = await res.text(); throw new Error(`Erro Gemini: ${res.status} â ${err.slice(0, 300)}`); }
   const data = await res.json();
   const texto = data?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
   return parseResposta(texto);
@@ -58,7 +58,7 @@ async function uploadVideoGemini(videoUrl: string): Promise<string> {
   const videoRes = await fetch(videoUrl, {
     headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
   });
-  if (!videoRes.ok) throw new Error("Não foi possível baixar o vídeo.");
+  if (!videoRes.ok) throw new Error("NÃ£o foi possÃ­vel baixar o vÃ­deo.");
   const contentType = videoRes.headers.get("content-type") || "video/mp4";
   const videoBuffer = await videoRes.arrayBuffer();
   const videoBytes = Buffer.from(videoBuffer);
@@ -90,7 +90,7 @@ async function uploadVideoGemini(videoUrl: string): Promise<string> {
   });
   const uploadData = await uploadRes.json();
   const fileUri = uploadData?.file?.uri;
-  if (!fileUri) throw new Error("Upload falhou — URI não encontrada.");
+  if (!fileUri) throw new Error("Upload falhou â URI nÃ£o encontrada.");
   const fileName = uploadData?.file?.name;
   if (fileName) {
     for (let i = 0; i < 20; i++) {
@@ -98,7 +98,7 @@ async function uploadVideoGemini(videoUrl: string): Promise<string> {
       const statusRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/${fileName}?key=${GEMINI_API_KEY}`);
       const statusData = await statusRes.json();
       if (statusData?.state === "ACTIVE") break;
-      if (statusData?.state === "FAILED") throw new Error("Processamento do vídeo falhou.");
+      if (statusData?.state === "FAILED") throw new Error("Processamento do vÃ­deo falhou.");
     }
   }
   return fileUri;
@@ -114,33 +114,33 @@ async function analisarComFileUri(fileUri: string, url: string): Promise<Record<
     `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
     { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }
   );
-  if (!res.ok) { const err = await res.text(); throw new Error(`Erro Gemini: ${res.status} — ${err.slice(0, 300)}`); }
+  if (!res.ok) { const err = await res.text(); throw new Error(`Erro Gemini: ${res.status} â ${err.slice(0, 300)}`); }
   const data = await res.json();
   const texto = data?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
   return parseResposta(texto);
 }
 
 function buildPrompt(url: string, transcricao: string): string {
-  return `Você é um especialista em análise de vídeos virais para redes sociais, usando o Método Metaverso.
+  return `VocÃª Ã© um especialista em anÃ¡lise de vÃ­deos virais para redes sociais, usando o MÃ©todo Metaverso.
 
-Analise este vídeo e gere uma ficha técnica completa. URL: ${url}
+Analise este vÃ­deo e gere uma ficha tÃ©cnica completa. URL: ${url}
 
-${transcricao ? `TRANSCRIÇÃO:\n${transcricao}\n` : ""}
+${transcricao ? `TRANSCRIÃÃO:\n${transcricao}\n` : ""}
 
-Retorne APENAS um JSON válido, sem markdown, sem explicações, sem texto extra. Apenas o JSON:
+Retorne APENAS um JSON vÃ¡lido, sem markdown, sem explicaÃ§Ãµes, sem texto extra. Apenas o JSON:
 
 {
-  "nicho": "qual o nicho principal (ex: saúde, finanças, empreendedorismo, estética...)",
-  "subnicho": "subnicho ou tema específico",
-  "duracao": "duração estimada em segundos",
+  "nicho": "qual o nicho principal (ex: saÃºde, finanÃ§as, empreendedorismo, estÃ©tica...)",
+  "subnicho": "subnicho ou tema especÃ­fico",
+  "duracao": "duraÃ§Ã£o estimada em segundos",
   "tom_de_voz": "como o creator fala: energia, velocidade, seriedade, informalidade...",
-  "cenario": "onde foi gravado: ambiente, decoração, iluminação, cores predominantes",
-  "angulo_camera": "plano aberto, plano médio, close, câmera baixa/alta...",
-  "enquadramento": "como o creator está posicionado, o que ocupa cada parte da tela",
-  "gesticulacao": "como usa as mãos, corpo, expressões faciais",
-  "legenda_tela": "textos, palavras em destaque, elementos gráficos visíveis",
-  "edicao": "cortes, transições, ritmo de edição, efeitos, elementos visuais",
-  "observacoes": "por que este vídeo funciona: gancho, retenção, CTA, o que pode ser modelado"
+  "cenario": "onde foi gravado: ambiente, decoraÃ§Ã£o, iluminaÃ§Ã£o, cores predominantes",
+  "angulo_camera": "plano aberto, plano mÃ©dio, close, cÃ¢mera baixa/alta...",
+  "enquadramento": "como o creator estÃ¡ posicionado, o que ocupa cada parte da tela",
+  "gesticulacao": "como usa as mÃ£os, corpo, expressÃµes faciais",
+  "legenda_tela": "textos, palavras em destaque, elementos grÃ¡ficos visÃ­veis",
+  "edicao": "cortes, transiÃ§Ãµes, ritmo de ediÃ§Ã£o, efeitos, elementos visuais",
+  "observacoes": "por que este vÃ­deo funciona: gancho, retenÃ§Ã£o, CTA, o que pode ser modelado"
 }`;
 }
 
@@ -153,8 +153,8 @@ function parseResposta(texto: string): Record<string, string> {
 
 export async function POST(req: NextRequest) {
   const { url } = await req.json();
-  if (!url?.trim()) return NextResponse.json({ erro: "URL não fornecida." }, { status: 400 });
-  if (!GEMINI_API_KEY) return NextResponse.json({ erro: "Chave Gemini não configurada." }, { status: 500 });
+  if (!url?.trim()) return NextResponse.json({ erro: "URL nÃ£o fornecida." }, { status: 400 });
+  if (!GEMINI_API_KEY) return NextResponse.json({ erro: "Chave Gemini nÃ£o configurada." }, { status: 500 });
   const tipo = tipoUrl(url);
   try {
     let ficha: Record<string, string>;
@@ -166,10 +166,10 @@ export async function POST(req: NextRequest) {
         const fileUri = await uploadVideoGemini(videoUrl);
         ficha = await analisarComFileUri(fileUri, url);
       } else {
-        return NextResponse.json({ erro: "Não foi possível acessar o vídeo. Verifique se é público e tente um link do YouTube." }, { status: 422 });
+        return NextResponse.json({ erro: "NÃ£o foi possÃ­vel acessar o vÃ­deo. Verifique se Ã© pÃºblico e tente um link do YouTube." }, { status: 422 });
       }
     } else {
-      return NextResponse.json({ erro: "Plataforma não suportada. Use Instagram, TikTok ou YouTube." }, { status: 400 });
+      return NextResponse.json({ erro: "Plataforma nÃ£o suportada. Use Instagram, TikTok ou YouTube." }, { status: 400 });
     }
     return NextResponse.json({ ficha });
   } catch (e: unknown) {
